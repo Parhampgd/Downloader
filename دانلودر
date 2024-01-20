@@ -1,0 +1,23 @@
+import requests
+
+def get_castbox_link(link):
+    response = requests.get(link)
+    return response.json()["episode"]["url"]
+
+def download_mp3(link):
+    response = requests.get(link, stream=True)
+    with open("audio.mp3", "wb") as f:
+        for chunk in response.iter_content(chunk_size=1024):
+            f.write(chunk)
+
+def on_message(update, context):
+    link = update.message.text
+    mp3_link = get_castbox_link(link)
+    download_mp3(mp3_link)
+    context.bot.send_message(chat_id=update.effective_chat.id, text="پادکست با موفقیت دانلود شد.")
+
+updater = Updater(token="YOUR_TOKEN")
+updater.dispatcher.add_handler(CommandHandler("start", on_message))
+updater.dispatcher.add_handler(MessageHandler(Filters.text, on_message))
+updater.start_polling()
+updater.idle()
